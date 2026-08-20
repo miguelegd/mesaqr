@@ -16,7 +16,8 @@ import {
   RefreshCw,
   Clock,
   Check,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import { enqueueOfflineOrder, getPendingOrdersCount, getAllPendingOrders, offlineDb } from '@/lib/offline/queue';
 
@@ -333,11 +334,28 @@ export default function WaiterPage() {
                         key={item.id}
                         className="flex items-center justify-between text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800"
                       >
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-amber-400">{item.quantity}x</span>
-                          <span className="text-slate-200">{item.productNameSnapshot}</span>
+                        <div className="flex items-center space-x-2 truncate max-w-[140px]">
+                          <span className="font-bold text-amber-400 font-mono">{item.quantity}x</span>
+                          <span className="text-slate-200 truncate">{item.productNameSnapshot}</span>
                         </div>
-                        <span className="font-mono text-slate-300">${item.subtotal.toFixed(2)}</span>
+
+                        <div className="flex items-center space-x-1.5 shrink-0">
+                          <span className="font-mono text-slate-300 text-[11px]">${item.subtotal.toFixed(2)}</span>
+                          <button
+                            onClick={() => db.updateItemQuantity('rest-caracas-grill-001', currentOrder.id, item.id, -1)}
+                            className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded flex items-center justify-center text-xs transition-all"
+                            title="Restar 1 unidad"
+                          >
+                            -
+                          </button>
+                          <button
+                            onClick={() => db.removeOrderItem('rest-caracas-grill-001', currentOrder.id, item.id)}
+                            className="w-5 h-5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 rounded flex items-center justify-center text-xs transition-all"
+                            title="Quitar de la comanda"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

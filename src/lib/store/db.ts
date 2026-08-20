@@ -731,6 +731,86 @@ class MesaQRDatabase {
     return { order, isDuplicate: false };
   }
 
+  removeOrderItem(
+    restaurantId: string,
+    orderId: string,
+    itemId: string,
+    waiterId: string = 'usr-waiter-carlos',
+    waiterName: string = 'Carlos Mendoza'
+  ) {
+    const order = this.orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const item = order.items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const itemDesc = item.productNameSnapshot;
+    order.items = order.items.filter((i) => i.id !== itemId);
+
+    const restaurant = this.restaurants.find((r) => r.id === restaurantId);
+    const taxRate = restaurant ? restaurant.taxRate : 0.0;
+
+    const subtotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
+    const tax = Number((subtotal * taxRate).toFixed(2));
+    const total = Number((subtotal + tax).toFixed(2));
+
+    order.subtotal = Number(subtotal.toFixed(2));
+    order.tax = tax;
+    order.total = total;
+    order.version += 1;
+    order.updatedAt = new Date().toISOString();
+
+    this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', itemId, 'ITEM_REMOVED', {
+      productName: itemDesc,
+    });
+
+    this.notify('ORDER_UPDATED', order);
+  }
+
+  updateItemQuantity(
+    restaurantId: string,
+    orderId: string,
+    itemId: string,
+    delta: number,
+    waiterId: string = 'usr-waiter-carlos',
+    waiterName: string = 'Carlos Mendoza'
+  ) {
+    const order = this.orders.find((o) => o.id === orderId);
+    if (!order) return;
+
+    const item = order.items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    item.quantity += delta;
+    if (item.quantity <= 0) {
+      order.items = order.items.filter((i) => i.id !== itemId);
+      this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', itemId, 'ITEM_REMOVED', {
+        productName: item.productNameSnapshot,
+      });
+    } else {
+      item.subtotal = Number((item.quantity * item.unitPriceSnapshot).toFixed(2));
+      this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', itemId, 'ITEM_UPDATED', {
+        productName: item.productNameSnapshot,
+        newQuantity: item.quantity,
+      });
+    }
+
+    const restaurant = this.restaurants.find((r) => r.id === restaurantId);
+    const taxRate = restaurant ? restaurant.taxRate : 0.0;
+
+    const subtotal = order.items.reduce((sum, i) => sum + i.subtotal, 0);
+    const tax = Number((subtotal * taxRate).toFixed(2));
+    const total = Number((subtotal + tax).toFixed(2));
+
+    order.subtotal = Number(subtotal.toFixed(2));
+    order.tax = tax;
+    order.total = total;
+    order.version += 1;
+    order.updatedAt = new Date().toISOString();
+
+    this.notify('ORDER_UPDATED', order);
+  }
+
   async triggerPOSSync(orderId: string): Promise<SyncEvent> {
     const order = this.orders.find((o) => o.id === orderId);
     if (!order) throw new Error('Orden no encontrada');

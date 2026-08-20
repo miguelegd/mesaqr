@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMesaQRStore } from '@/lib/store/useMesaQRStore';
-import { Layers, QrCode, Plus, Copy, ExternalLink, Check, RefreshCw, Smartphone, Eye } from 'lucide-react';
+import { Layers, QrCode, Plus, Copy, ExternalLink, Check, RefreshCw, Smartphone, Eye, Trash2, Minus } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function TablesPage() {
@@ -234,13 +234,30 @@ export default function TablesPage() {
                     <span className="font-extrabold text-amber-400 text-lg font-mono">${order.total.toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 max-h-40 overflow-y-auto">
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 max-h-48 overflow-y-auto">
                     {order.items.map((i) => (
-                      <div key={i.id} className="flex justify-between text-xs">
-                        <span className="text-slate-200 font-medium">
-                          <strong className="text-amber-400">{i.quantity}x</strong> {i.productNameSnapshot}
+                      <div key={i.id} className="flex justify-between items-center text-xs bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
+                        <span className="text-slate-200 font-medium truncate max-w-[140px]" title={i.productNameSnapshot}>
+                          <strong className="text-amber-400 font-mono">{i.quantity}x</strong> {i.productNameSnapshot}
                         </span>
-                        <span className="font-mono text-slate-400">${i.subtotal.toFixed(2)}</span>
+
+                        <div className="flex items-center space-x-1.5 shrink-0">
+                          <span className="font-mono text-slate-300 text-[11px]">${i.subtotal.toFixed(2)}</span>
+                          <button
+                            onClick={() => db.updateItemQuantity('rest-caracas-grill-001', order.id, i.id, -1)}
+                            className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded flex items-center justify-center text-xs transition-all"
+                            title="Restar 1 unidad"
+                          >
+                            -
+                          </button>
+                          <button
+                            onClick={() => db.removeOrderItem('rest-caracas-grill-001', order.id, i.id)}
+                            className="w-5 h-5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 rounded flex items-center justify-center text-xs transition-all"
+                            title="Quitar ítem de la comanda"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
