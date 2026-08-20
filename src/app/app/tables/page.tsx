@@ -18,6 +18,13 @@ export default function TablesPage() {
   const [detectedIp, setDetectedIp] = useState<string>('localhost');
   const [customHost, setCustomHost] = useState<string>('');
 
+  // Manual Order Modal state
+  const [showManualModalTableId, setShowManualModalTableId] = useState<string | null>(null);
+  const [manualTableName, setManualTableName] = useState<string>('');
+  const [manualName, setManualName] = useState<string>('');
+  const [manualPrice, setManualPrice] = useState<string>('');
+  const [manualQty, setManualQty] = useState<number>(1);
+
   useEffect(() => {
     // Fetch local network IPv4 address from server API
     fetch('/api/v1/network-ip')
@@ -75,6 +82,24 @@ export default function TablesPage() {
     db.createOrUpdateOrder('rest-caracas-grill-001', session.id, 'usr-waiter-carlos', 'Carlos Mendoza', [
       { productId: 'prod-beb-1', quantity: 1 },
     ]);
+  };
+
+  const handleAddManualItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showManualModalTableId || !manualName.trim() || !manualPrice) return;
+
+    const priceNum = parseFloat(manualPrice);
+    if (isNaN(priceNum) || priceNum <= 0) return;
+
+    const session = db.getOrCreateActiveSession('rest-caracas-grill-001', showManualModalTableId, 'usr-waiter-carlos', 'Carlos Mendoza');
+    db.createOrUpdateOrder('rest-caracas-grill-001', session.id, 'usr-waiter-carlos', 'Carlos Mendoza', [
+      { customName: manualName.trim(), customPrice: priceNum, quantity: manualQty },
+    ]);
+
+    setShowManualModalTableId(null);
+    setManualName('');
+    setManualPrice('');
+    setManualQty(1);
   };
 
   return (
@@ -224,12 +249,24 @@ export default function TablesPage() {
                 <p className="text-xs text-slate-500 italic py-2">Mesa libre sin pedidos.</p>
               )}
 
-              {/* REALTIME TEST BUTTON FOR MESA 01 */}
-              {t.id === 'tbl-1' && order && (
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+              {/* REALTIME TEST & MANUAL ORDER BUTTONS FOR MESA 01 / ALL TABLES */}
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
                   <span className="text-[11px] text-amber-400 font-bold block">
-                    ⚡ Prueba de Actualización en Tiempo Real:
+                    ⚡ Añadir Pedido Manual:
                   </span>
+                  <button
+                    onClick={() => {
+                      setShowManualModalTableId(t.id);
+                      setManualTableName(t.number);
+                    }}
+                    className="text-[11px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-3 py-1.5 rounded-lg border border-amber-500/50 flex items-center space-x-1 shadow-md shadow-amber-500/20"
+                  >
+                    <span>📝 + Ítem Manual</span>
+                  </button>
+                </div>
+
+                {t.id === 'tbl-1' && (
                   <button
                     onClick={handleAddBeerToMesa1}
                     className="w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all"
@@ -237,11 +274,8 @@ export default function TablesPage() {
                     <Plus className="w-3.5 h-3.5" />
                     <span>Agregar +1 Cerveza ($3.00)</span>
                   </button>
-                  <p className="text-[10px] text-slate-400 text-center">
-                    Haz clic aquí en tu PC y observa como tu teléfono se actualiza de $32.00 a $35.00 sin refrescar la página.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* ACTION BUTTONS: VER CUENTA & GENERAR QR */}
               <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-800">
@@ -327,6 +361,90 @@ export default function TablesPage() {
               Cerrar Ventana
             </button>
           </div>
+        </div>
+      )}
+
+      {/* MANUAL ITEM ADDITION MODAL FOR WAITER */}
+      {showManualModalTableId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={handleAddManualItem}
+            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95"
+          >
+            <div>
+              <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest block">Camarero — Carga Manual</span>
+              <h3 className="font-black text-xl text-white mt-0.5">Agregar Pedido Manual a {manualTableName}</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Ingresa una descripción personalizada y precio para subir directamente a la cuenta de esta mesa.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Nombre o Descripción del Pedido</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Ración de Tequeños con salsa, Extra queso..."
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Precio Unitario ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ej: 6.50"
+                    value={manualPrice}
+                    onChange={(e) => setManualPrice(e.target.value)}
+                    required
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Cantidad</label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setManualQty(Math.max(1, manualQty - 1))}
+                      className="w-9 h-9 bg-slate-800 text-white font-bold rounded-lg border border-slate-700 flex items-center justify-center text-base"
+                    >
+                      -
+                    </button>
+                    <span className="font-extrabold text-sm text-white font-mono w-6 text-center">{manualQty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setManualQty(manualQty + 1)}
+                      className="w-9 h-9 bg-amber-500 text-slate-950 font-bold rounded-lg flex items-center justify-center text-base"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowManualModalTableId(null)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-amber-500/20 transition-all"
+              >
+                SUBIR A LA CUENTA
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </main>

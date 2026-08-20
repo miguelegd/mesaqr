@@ -451,7 +451,7 @@ class MesaQRDatabase {
     tableSessionId: string,
     waiterId: string,
     waiterName: string,
-    itemsInput: Array<{ productId: string; quantity: number }>,
+    itemsInput: Array<{ productId?: string; customName?: string; customPrice?: number; quantity: number }>,
     idempotencyKey?: string
   ): { order: Order; isDuplicate: boolean } {
     if (idempotencyKey) {
@@ -506,22 +506,44 @@ class MesaQRDatabase {
     const taxRate = restaurant ? restaurant.taxRate : 0.0;
 
     for (const input of itemsInput) {
-      const prod = this.products.find((p) => p.id === input.productId);
-      if (!prod) continue;
+      let prodName = '';
+      let prodSku = 'MANUAL';
+      let prodPrice = 0;
+      let targetProductId = input.productId || `prod-custom-${Date.now()}`;
 
-      const existingItem = order.items.find((i) => i.productId === input.productId);
+      if (input.productId) {
+        const prod = this.products.find((p) => p.id === input.productId);
+        if (prod) {
+          prodName = prod.name;
+          prodSku = prod.sku;
+          prodPrice = prod.price;
+        }
+      }
+
+      if (input.customName && input.customPrice !== undefined) {
+        prodName = input.customName;
+        prodPrice = input.customPrice;
+        prodSku = 'MANUAL';
+        targetProductId = `prod-custom-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      }
+
+      if (!prodName) continue;
+
+      const existingItem = order.items.find(
+        (i) => i.productId === targetProductId || (input.customName && i.productNameSnapshot === input.customName)
+      );
 
       if (existingItem) {
         existingItem.quantity += input.quantity;
         if (existingItem.quantity <= 0) {
-          order.items = order.items.filter((i) => i.productId !== input.productId);
+          order.items = order.items.filter((i) => i.id !== existingItem.id);
           this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', existingItem.id, 'ITEM_REMOVED', {
-            productName: prod.name,
+            productName: prodName,
           });
         } else {
           existingItem.subtotal = Number((existingItem.quantity * existingItem.unitPriceSnapshot).toFixed(2));
           this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', existingItem.id, 'ITEM_UPDATED', {
-            productName: prod.name,
+            productName: prodName,
             newQuantity: existingItem.quantity,
           });
         }
@@ -529,20 +551,20 @@ class MesaQRDatabase {
         const newItem: OrderItem = {
           id: `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           orderId: order.id,
-          productId: prod.id,
-          productNameSnapshot: prod.name,
-          skuSnapshot: prod.sku,
+          productId: targetProductId,
+          productNameSnapshot: prodName,
+          skuSnapshot: prodSku,
           quantity: input.quantity,
-          unitPriceSnapshot: prod.price,
-          taxSnapshot: prod.taxRate || taxRate,
+          unitPriceSnapshot: prodPrice,
+          taxSnapshot: taxRate,
           discount: 0,
-          subtotal: Number((prod.price * input.quantity).toFixed(2)),
+          subtotal: Number((prodPrice * input.quantity).toFixed(2)),
         };
         order.items.push(newItem);
         this.logAudit(restaurantId, waiterId, 'WAITER', waiterName, 'ORDER_ITEM', newItem.id, 'ITEM_ADDED', {
-          productName: prod.name,
+          productName: prodName,
           quantity: input.quantity,
-          unitPrice: prod.price,
+          unitPrice: prodPrice,
         });
       }
     }

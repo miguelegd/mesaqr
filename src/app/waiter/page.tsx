@@ -31,6 +31,38 @@ export default function WaiterPage() {
   const [syncingOffline, setSyncingOffline] = useState<boolean>(false);
   const [lastActionMessage, setLastActionMessage] = useState<string | null>(null);
 
+  // Manual Order state
+  const [showManualModal, setShowManualModal] = useState<boolean>(false);
+  const [manualName, setManualName] = useState<string>('');
+  const [manualPrice, setManualPrice] = useState<string>('');
+  const [manualQty, setManualQty] = useState<number>(1);
+
+  const handleAddManualOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim() || !manualPrice) return;
+
+    const priceNum = parseFloat(manualPrice);
+    if (isNaN(priceNum) || priceNum <= 0) return;
+
+    const session = db.getOrCreateActiveSession('rest-caracas-grill-001', selectedTableId, 'usr-waiter-carlos', 'Carlos Mendoza');
+    const idempotencyKey = `w-man-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    db.createOrUpdateOrder(
+      'rest-caracas-grill-001',
+      session.id,
+      'usr-waiter-carlos',
+      'Carlos Mendoza',
+      [{ customName: manualName.trim(), customPrice: priceNum, quantity: manualQty }],
+      idempotencyKey
+    );
+
+    setShowManualModal(false);
+    setManualName('');
+    setManualPrice('');
+    setManualQty(1);
+    showMessage(`✅ Ítem manual "${manualName.trim()}" agregado a la comanda de ${currentTable?.number}.`);
+  };
+
   useEffect(() => {
     setIsOnline(navigator.onLine);
     const handleOnline = () => {
@@ -317,25 +349,34 @@ export default function WaiterPage() {
 
         {/* RIGHT COLUMN: Quick Menu & Comanda Register */}
         <div className="lg:col-span-8 flex flex-col space-y-4">
-          {/* Category Tabs */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-2.5 shadow-lg flex space-x-2 overflow-x-auto">
-            {categories.map((c) => {
-              const isCatSelected = c.id === selectedCategoryId;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setSelectedCategoryId(c.id)}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
-                    isCatSelected
-                      ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 font-extrabold'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  }`}
-                >
-                  <span className="text-base">{c.icon || '🍽️'}</span>
-                  <span>{c.name}</span>
-                </button>
-              );
-            })}
+          {/* Category Tabs & Manual Entry Button */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-2.5 shadow-lg flex items-center justify-between gap-2 overflow-x-auto">
+            <div className="flex space-x-2 overflow-x-auto">
+              {categories.map((c) => {
+                const isCatSelected = c.id === selectedCategoryId;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedCategoryId(c.id)}
+                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
+                      isCatSelected
+                        ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 font-extrabold'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-base">{c.icon || '🍽️'}</span>
+                    <span>{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowManualModal(true)}
+              className="bg-amber-500/20 border border-amber-500/50 text-amber-300 hover:bg-amber-500/30 px-3.5 py-2.5 rounded-xl font-extrabold text-xs whitespace-nowrap flex items-center space-x-1.5 shadow"
+            >
+              <span>📝 + Ítem Manual</span>
+            </button>
           </div>
 
           {/* Product Grid (Large touch buttons for Waiter) */}
@@ -427,6 +468,90 @@ export default function WaiterPage() {
           </div>
         </div>
       </main>
+
+      {/* MANUAL ITEM ADDITION MODAL FOR WAITER */}
+      {showManualModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={handleAddManualOrder}
+            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95"
+          >
+            <div>
+              <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest block">Camarero — Carga Manual</span>
+              <h3 className="font-black text-xl text-white mt-0.5">Agregar Pedido Manual a {currentTable?.number}</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Ingresa una descripción personalizada y precio para subir directamente a la cuenta de esta mesa.
+              </p>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Nombre o Descripción del Pedido</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Ración de Tequeños, Hamburguesa especial sin cebolla..."
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  required
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Precio Unitario ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Ej: 5.50"
+                    value={manualPrice}
+                    onChange={(e) => setManualPrice(e.target.value)}
+                    required
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Cantidad</label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setManualQty(Math.max(1, manualQty - 1))}
+                      className="w-9 h-9 bg-slate-800 text-white font-bold rounded-lg border border-slate-700 flex items-center justify-center text-base"
+                    >
+                      -
+                    </button>
+                    <span className="font-extrabold text-sm text-white font-mono w-6 text-center">{manualQty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setManualQty(manualQty + 1)}
+                      className="w-9 h-9 bg-amber-500 text-slate-950 font-bold rounded-lg flex items-center justify-center text-base"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-2 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowManualModal(false)}
+                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-amber-500/20 transition-all"
+              >
+                AÑADIR A LA CUENTA
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
