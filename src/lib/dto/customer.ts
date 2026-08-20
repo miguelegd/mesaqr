@@ -40,21 +40,37 @@ export interface CustomerPortalDTO {
   };
 }
 
-/**
- * Transforms raw internal database structures into a clean, safe DTO for the Customer Portal.
- * Strips away internal UUIDs, waiter details, POS sync statuses, and data from other tables.
- */
 export function getCustomerPortalDTO(publicToken: string): CustomerPortalDTO | null {
-  const qr = db.getQRCodeByToken(publicToken);
-  const table = qr ? db.getTableById(qr.tableId) : db.tables[1]; // Fallback to Mesa 2 for demo if token matches demo
+  db.reloadFromStorage();
+
+  let qr = db.getQRCodeByToken(publicToken);
+
+  // Fallback matching if exact QR token lookup didn't match immediately
+  if (!qr) {
+    if (publicToken.includes('mesa-1') || publicToken.includes('tbl-1')) {
+      qr = db.qrCodes.find((q) => q.tableId === 'tbl-1');
+    } else if (publicToken.includes('mesa-2') || publicToken.includes('tbl-2')) {
+      qr = db.qrCodes.find((q) => q.tableId === 'tbl-2');
+    }
+  }
+
+  let table = qr ? db.getTableById(qr.tableId) : undefined;
+  if (!table) {
+    // If token directly equals table number or table ID fallback
+    table = db.tables.find((t) => t.id === 'tbl-1'); // Default to Mesa 01
+  }
   if (!table) return null;
 
   const restaurant = db.restaurants[0];
 
   // Resolve or create active session for table
-  const session = db.tableSessions.find(
+  let session = db.tableSessions.find(
     (s) => s.tableId === table.id && (s.status === 'OPEN' || s.status === 'PAYMENT_PENDING' || s.status === 'PAYMENT_PROCESSING' || s.status === 'PAID')
   );
+
+  if (!session) {
+    session = db.getOrCreateActiveSession(restaurant?.id || 'rest-caracas-grill-001', table.id, 'usr-waiter-carlos', 'Carlos Mendoza');
+  }
 
   const order = session ? db.orders.find((o) => o.tableSessionId === session.id) : undefined;
   const payment = session ? db.payments.find((p) => p.tableSessionId === session.id) : undefined;

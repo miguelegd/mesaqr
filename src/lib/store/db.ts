@@ -18,8 +18,18 @@ import {
 import { mockPOSAdapter } from '../pos/mockAdapter';
 
 export const DEMO_RESTAURANT_ID = 'rest-caracas-grill-001';
+const STORAGE_KEY = 'mesaqr_db_state_v2';
 
 type EventCallback = (eventType: string, payload: unknown) => void;
+
+let broadcastBus: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    broadcastBus = new BroadcastChannel('mesaqr_realtime_channel');
+  } catch (e) {
+    console.warn('BroadcastChannel error:', e);
+  }
+}
 
 class MesaQRDatabase {
   private listeners: Set<EventCallback> = new Set();
@@ -39,7 +49,100 @@ class MesaQRDatabase {
   auditLogs: AuditLog[] = [];
 
   constructor() {
+    this.initStorage();
+  }
+
+  private initStorage() {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          this.loadFromParsedData(parsed);
+        } catch (e) {
+          this.seedDemoData();
+          this.saveToStorage();
+        }
+      } else {
+        this.seedDemoData();
+        this.saveToStorage();
+      }
+
+      if (broadcastBus) {
+        broadcastBus.onmessage = (event) => {
+          this.reloadFromStorage();
+          this.listeners.forEach((cb) => cb(event.data?.eventType || 'SYNC', event.data?.payload));
+        };
+      }
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY) {
+          this.reloadFromStorage();
+          this.listeners.forEach((cb) => cb('STORAGE_SYNC', null));
+        }
+      });
+    } else {
+      this.seedDemoData();
+    }
+  }
+
+  reloadFromStorage() {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.loadFromParsedData(parsed);
+      }
+    } catch (e) {
+      console.error('Error reloading state:', e);
+    }
+  }
+
+  private loadFromParsedData(parsed: Record<string, unknown>) {
+    if (Array.isArray(parsed.restaurants)) this.restaurants = parsed.restaurants as Restaurant[];
+    if (Array.isArray(parsed.users)) this.users = parsed.users as User[];
+    if (Array.isArray(parsed.tables)) this.tables = parsed.tables as Table[];
+    if (Array.isArray(parsed.qrCodes)) this.qrCodes = parsed.qrCodes as QRCodeData[];
+    if (Array.isArray(parsed.tableSessions)) this.tableSessions = parsed.tableSessions as TableSession[];
+    if (Array.isArray(parsed.categories)) this.categories = parsed.categories as Category[];
+    if (Array.isArray(parsed.products)) this.products = parsed.products as Product[];
+    if (Array.isArray(parsed.orders)) this.orders = parsed.orders as Order[];
+    if (Array.isArray(parsed.payments)) this.payments = parsed.payments as Payment[];
+    if (Array.isArray(parsed.paymentProofs)) this.paymentProofs = parsed.paymentProofs as PaymentProof[];
+    if (Array.isArray(parsed.productMappings)) this.productMappings = parsed.productMappings as ProductMapping[];
+    if (Array.isArray(parsed.syncEvents)) this.syncEvents = parsed.syncEvents as SyncEvent[];
+    if (Array.isArray(parsed.auditLogs)) this.auditLogs = parsed.auditLogs as AuditLog[];
+  }
+
+  saveToStorage() {
+    if (typeof window === 'undefined') return;
+    try {
+      const data = {
+        restaurants: this.restaurants,
+        users: this.users,
+        tables: this.tables,
+        qrCodes: this.qrCodes,
+        tableSessions: this.tableSessions,
+        categories: this.categories,
+        products: this.products,
+        orders: this.orders,
+        payments: this.payments,
+        paymentProofs: this.paymentProofs,
+        productMappings: this.productMappings,
+        syncEvents: this.syncEvents,
+        auditLogs: this.auditLogs,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      console.error('Error saving state:', e);
+    }
+  }
+
+  resetToDemoData() {
     this.seedDemoData();
+    this.saveToStorage();
+    this.notify('DEMO_RESET', null);
   }
 
   subscribe(callback: EventCallback): () => void {
@@ -48,6 +151,14 @@ class MesaQRDatabase {
   }
 
   private notify(eventType: string, payload: unknown) {
+    this.saveToStorage();
+    if (broadcastBus) {
+      try {
+        broadcastBus.postMessage({ eventType, payload, ts: Date.now() });
+      } catch (e) {
+        // ignore
+      }
+    }
     this.listeners.forEach((cb) => cb(eventType, payload));
   }
 

@@ -22,14 +22,24 @@ import { PaymentMethod } from '@/lib/types';
 
 export default function CustomerPortalPage() {
   const params = useParams();
-  const token = (params.token as string) || 'token-demo-mesa-2';
+  const token = (params.token as string) || 'token-demo-mesa-1';
   const db = useMesaQRStore(); // Subscribes to realtime updates
+  const [, setTick] = useState(0);
 
   const [showCloseModal, setShowCloseModal] = useState<boolean>(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [uploadedProofName, setUploadedProofName] = useState<string | null>(null);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const handleStorage = () => {
+      db.reloadFromStorage();
+      setTick((t) => t + 1);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [db]);
 
   // Consume DTO
   const dto = getCustomerPortalDTO(token);
@@ -48,9 +58,15 @@ export default function CustomerPortalPage() {
 
   // Get raw session ID for mutation actions
   const qr = db.getQRCodeByToken(token);
-  const tableId = qr ? qr.tableId : 'tbl-2';
+  let resolvedTableId = qr?.tableId;
+  if (!resolvedTableId) {
+    if (token.includes('mesa-1') || token.includes('tbl-1')) resolvedTableId = 'tbl-1';
+    else if (token.includes('mesa-2') || token.includes('tbl-2')) resolvedTableId = 'tbl-2';
+    else resolvedTableId = 'tbl-1';
+  }
+
   const session = db.tableSessions.find(
-    (s) => s.tableId === tableId && (s.status === 'OPEN' || s.status === 'PAYMENT_PENDING' || s.status === 'PAYMENT_PROCESSING' || s.status === 'PAID')
+    (s) => s.tableId === resolvedTableId && (s.status === 'OPEN' || s.status === 'PAYMENT_PENDING' || s.status === 'PAYMENT_PROCESSING' || s.status === 'PAID')
   );
 
   const handleConfirmCloseAccount = () => {
