@@ -39,9 +39,16 @@ export default function TablesPage() {
     setPreviewToken(token);
     setPreviewTableName(tableName);
 
-    // Host determination: Prefer custom host input if provided, else detected IPv4, else window.location.hostname
-    const hostToUse = customHost.trim() || detectedIp || (typeof window !== 'undefined' ? window.location.hostname : 'localhost');
-    const fullUrl = `http://${hostToUse}:3000/m/${token}`;
+    let fullUrl = '';
+    if (customHost.trim()) {
+      fullUrl = `http://${customHost.trim()}:3000/m/${token}`;
+    } else if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && window.location.hostname !== '127.0.0.1') {
+      fullUrl = `${window.location.origin}/m/${token}`;
+    } else {
+      const hostToUse = detectedIp || (typeof window !== 'undefined' ? window.location.hostname : 'localhost');
+      fullUrl = `http://${hostToUse}:3000/m/${token}`;
+    }
+
     setTargetScannableUrl(fullUrl);
 
     try {
