@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMesaQRStore } from '@/lib/store/useMesaQRStore';
-import { Layers, QrCode, Plus, Copy, ExternalLink, Check, RefreshCw, Smartphone, Eye, Trash2, Minus } from 'lucide-react';
+import { Layers, QrCode, Plus, Copy, ExternalLink, Check, RefreshCw, Smartphone, Eye, Trash2 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function TablesPage() {
@@ -62,7 +62,7 @@ export default function TablesPage() {
       const dataUrl = await QRCode.toDataURL(fullUrl, {
         width: 320,
         margin: 2,
-        color: { dark: '#090d16', light: '#ffffff' },
+        color: { dark: '#111113', light: '#ffffff' },
       });
       setQrUrl(dataUrl);
     } catch (err) {
@@ -103,35 +103,35 @@ export default function TablesPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <main className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 bg-[#111113] text-stone-100 font-sans">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-800/90 pb-6">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center space-x-3">
-            <Layers className="w-7 h-7 text-amber-400" />
-            <span>Gestión de Mesas & Generación de QR Escaneable</span>
+          <h1 className="text-2xl font-bold text-stone-50 font-serif flex items-center space-x-3">
+            <Layers className="w-6 h-6 text-amber-500" />
+            <span>Gestión de Mesas & Códigos QR</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Genera QRs reales conectados a la IP local para probar con tu teléfono móvil en la misma red Wi-Fi
+          <p className="text-xs text-stone-400 mt-1">
+            Generación de accesos QR y monitoreo de comanda activa por mesa
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs flex items-center space-x-2">
-            <span className="text-slate-400">IP Detectada:</span>
+          <div className="bg-[#18181c] border border-stone-800 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
+            <span className="text-stone-400 font-medium">IP Servidor:</span>
             <span className="font-mono text-emerald-400 font-bold">{detectedIp}:3000</span>
           </div>
         </div>
       </div>
 
       {/* Network Configuration Helper */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs space-y-2 text-slate-200">
+      <div className="bg-[#18181c] border border-stone-800 rounded-2xl p-4 text-xs space-y-2 text-stone-300">
         <div className="flex items-center space-x-2 text-amber-400 font-bold">
           <Smartphone className="w-4 h-4" />
-          <span>Configuración de Acceso desde Teléfono Móvil</span>
+          <span>Acceso desde Teléfono Móvil</span>
         </div>
-        <p className="text-slate-300">
-          Para escanear desde tu teléfono real, asegúrate de estar conectado a la **misma red Wi-Fi**. Si la IP detectada arriba es distinta, ingresa la IP local de tu ordenador aquí:
+        <p className="text-stone-400">
+          Para escanear desde tu dispositivo móvil, asegúrate de usar la URL pública en Vercel o la IP local de tu Wi-Fi:
         </p>
         <div className="flex items-center space-x-2 max-w-sm">
           <input
@@ -139,7 +139,7 @@ export default function TablesPage() {
             placeholder={`Ej: ${detectedIp}`}
             value={customHost}
             onChange={(e) => setCustomHost(e.target.value)}
-            className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white w-full focus:outline-none focus:border-amber-500"
+            className="bg-[#111113] border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 w-full focus:outline-none focus:border-amber-500 font-mono"
           />
         </div>
       </div>
@@ -148,32 +148,32 @@ export default function TablesPage() {
       <div className="flex space-x-2 text-xs">
         <button
           onClick={() => setFilter('ALL')}
-          className={`px-3.5 py-2 rounded-xl font-bold border ${
-            filter === 'ALL' ? 'bg-slate-800 border-amber-500 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-400'
+          className={`px-4 py-2 rounded-xl font-bold border transition-all ${
+            filter === 'ALL' ? 'bg-[#ca8a04] border-amber-600 text-stone-950 shadow' : 'bg-[#18181c] border-stone-800 text-stone-400 hover:text-stone-200'
           }`}
         >
           Todas ({db.tables.length})
         </button>
         <button
           onClick={() => setFilter('FREE')}
-          className={`px-3.5 py-2 rounded-xl font-bold border ${
-            filter === 'FREE' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-900 border-slate-800 text-slate-400'
+          className={`px-4 py-2 rounded-xl font-bold border transition-all ${
+            filter === 'FREE' ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300' : 'bg-[#18181c] border-stone-800 text-stone-400 hover:text-stone-200'
           }`}
         >
           Libres (🟢)
         </button>
         <button
           onClick={() => setFilter('OCCUPIED')}
-          className={`px-3.5 py-2 rounded-xl font-bold border ${
-            filter === 'OCCUPIED' ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-400'
+          className={`px-4 py-2 rounded-xl font-bold border transition-all ${
+            filter === 'OCCUPIED' ? 'bg-amber-950/80 border-amber-800 text-amber-300' : 'bg-[#18181c] border-stone-800 text-stone-400 hover:text-stone-200'
           }`}
         >
           Ocupadas (🟡)
         </button>
         <button
           onClick={() => setFilter('PAYMENT_PENDING')}
-          className={`px-3.5 py-2 rounded-xl font-bold border ${
-            filter === 'PAYMENT_PENDING' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'bg-slate-900 border-slate-800 text-slate-400'
+          className={`px-4 py-2 rounded-xl font-bold border transition-all ${
+            filter === 'PAYMENT_PENDING' ? 'bg-rose-950/80 border-rose-800 text-rose-300' : 'bg-[#18181c] border-stone-800 text-stone-400 hover:text-stone-200'
           }`}
         >
           Pago Pendiente (🔴)
@@ -192,35 +192,33 @@ export default function TablesPage() {
           return (
             <div
               key={t.id}
-              className={`bg-slate-900 border rounded-2xl p-5 shadow-xl space-y-4 transition-all ${
-                t.id === 'tbl-1' ? 'border-amber-500/80 ring-1 ring-amber-500/40' : 'border-slate-800'
-              }`}
+              className="bg-[#18181c] border border-stone-800/90 rounded-2xl p-5 shadow-md space-y-4 transition-all"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-stone-800/80 pb-3">
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h3 className="font-black text-xl text-white">{t.number}</h3>
+                    <h3 className="font-bold text-xl text-stone-50 font-serif">{t.number}</h3>
                     {t.id === 'tbl-1' && (
-                      <span className="text-[10px] bg-amber-500 text-slate-950 px-2 py-0.5 rounded font-extrabold">
-                        MESA DE PRUEBA
+                      <span className="text-[10px] bg-amber-500/20 border border-amber-800 text-amber-300 px-2 py-0.5 rounded font-bold">
+                        MESA DEMO
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-slate-400">{t.zone}</span>
+                  <span className="text-xs text-stone-400 font-medium">{t.zone}</span>
                 </div>
 
                 {t.status === 'FREE' && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30">
+                  <span className="text-xs px-3 py-1 rounded-full bg-emerald-950/60 text-emerald-400 font-bold border border-emerald-800/80">
                     Libre 🟢
                   </span>
                 )}
                 {t.status === 'OCCUPIED' && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">
+                  <span className="text-xs px-3 py-1 rounded-full bg-amber-950/60 text-amber-400 font-bold border border-amber-800/80">
                     Ocupada 🟡
                   </span>
                 )}
                 {t.status === 'PAYMENT_PENDING' && (
-                  <span className="text-xs px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 font-bold border border-rose-500/30 animate-pulse">
+                  <span className="text-xs px-3 py-1 rounded-full bg-rose-950/60 text-rose-400 font-bold border border-rose-800/80">
                     Pago Pendiente 🔴
                   </span>
                 )}
@@ -229,30 +227,30 @@ export default function TablesPage() {
               {/* Order Items Breakdown */}
               {order ? (
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-slate-400 font-semibold">Total Consumo:</span>
-                    <span className="font-extrabold text-amber-400 text-lg font-mono">${order.total.toFixed(2)}</span>
+                  <div className="flex justify-between items-center bg-[#111113] p-2.5 rounded-xl border border-stone-800">
+                    <span className="text-stone-400 font-medium">Total Consumo:</span>
+                    <span className="font-bold text-amber-400 text-lg font-mono">${order.total.toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 max-h-48 overflow-y-auto">
+                  <div className="bg-[#111113] p-3 rounded-xl border border-stone-800 space-y-2 max-h-48 overflow-y-auto">
                     {order.items.map((i) => (
-                      <div key={i.id} className="flex justify-between items-center text-xs bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
-                        <span className="text-slate-200 font-medium truncate max-w-[140px]" title={i.productNameSnapshot}>
+                      <div key={i.id} className="flex justify-between items-center text-xs bg-[#18181c] p-2 rounded-lg border border-stone-800/60">
+                        <span className="text-stone-200 font-medium truncate max-w-[140px]" title={i.productNameSnapshot}>
                           <strong className="text-amber-400 font-mono">{i.quantity}x</strong> {i.productNameSnapshot}
                         </span>
 
                         <div className="flex items-center space-x-1.5 shrink-0">
-                          <span className="font-mono text-slate-300 text-[11px]">${i.subtotal.toFixed(2)}</span>
+                          <span className="font-mono text-stone-300 text-[11px]">${i.subtotal.toFixed(2)}</span>
                           <button
                             onClick={() => db.updateItemQuantity('rest-caracas-grill-001', order.id, i.id, -1)}
-                            className="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold rounded flex items-center justify-center text-xs transition-all"
+                            className="w-5 h-5 bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold rounded flex items-center justify-center text-xs transition-all border border-stone-700"
                             title="Restar 1 unidad"
                           >
                             -
                           </button>
                           <button
                             onClick={() => db.removeOrderItem('rest-caracas-grill-001', order.id, i.id)}
-                            className="w-5 h-5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 rounded flex items-center justify-center text-xs transition-all"
+                            className="w-5 h-5 bg-rose-950 hover:bg-rose-900 text-rose-400 rounded flex items-center justify-center text-xs transition-all border border-rose-800"
                             title="Quitar ítem de la comanda"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -263,21 +261,21 @@ export default function TablesPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 italic py-2">Mesa libre sin pedidos.</p>
+                <p className="text-xs text-stone-500 italic py-2">Mesa libre sin pedidos.</p>
               )}
 
               {/* REALTIME TEST & MANUAL ORDER BUTTONS FOR MESA 01 / ALL TABLES */}
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+              <div className="bg-[#111113] p-3 rounded-xl border border-stone-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-amber-400 font-bold block">
-                    ⚡ Añadir Pedido Manual:
+                  <span className="text-[11px] text-amber-400 font-semibold block">
+                    ⚡ Modificación de Comanda:
                   </span>
                   <button
                     onClick={() => {
                       setShowManualModalTableId(t.id);
                       setManualTableName(t.number);
                     }}
-                    className="text-[11px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-3 py-1.5 rounded-lg border border-amber-500/50 flex items-center space-x-1 shadow-md shadow-amber-500/20"
+                    className="text-[11px] bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-bold px-3 py-1.5 rounded-lg border border-amber-600 flex items-center space-x-1 shadow-sm transition-all"
                   >
                     <span>📝 + Ítem Manual</span>
                   </button>
@@ -286,7 +284,7 @@ export default function TablesPage() {
                 {t.id === 'tbl-1' && (
                   <button
                     onClick={handleAddBeerToMesa1}
-                    className="w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all"
+                    className="w-full bg-stone-800 hover:bg-stone-700 border border-stone-700 text-amber-300 font-bold py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Agregar +1 Cerveza ($3.00)</span>
@@ -295,11 +293,11 @@ export default function TablesPage() {
               </div>
 
               {/* ACTION BUTTONS: VER CUENTA & GENERAR QR */}
-              <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-800">
+              <div className="pt-2 flex items-center justify-between gap-2 border-t border-stone-800">
                 {qr && (
                   <button
                     onClick={() => handleOpenQrModal(qr.publicToken, t.number)}
-                    className="flex-1 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-2.5 rounded-xl flex items-center justify-center space-x-1.5 shadow-md shadow-amber-500/20 transition-all"
+                    className="flex-1 text-xs bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-extrabold py-2.5 rounded-xl flex items-center justify-center space-x-1.5 shadow-sm transition-all border border-amber-600"
                   >
                     <QrCode className="w-4 h-4" />
                     <span>GENERAR QR</span>
@@ -310,7 +308,7 @@ export default function TablesPage() {
                   <a
                     href={`/m/${qr.publicToken}`}
                     target="_blank"
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold px-3 py-2.5 rounded-xl flex items-center space-x-1 border border-slate-700"
+                    className="text-xs bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold px-3 py-2.5 rounded-xl flex items-center space-x-1 border border-stone-700"
                   >
                     <Eye className="w-4 h-4 text-emerald-400" />
                     <span>VER CUENTA</span>
@@ -324,28 +322,28 @@ export default function TablesPage() {
 
       {/* QR GENERATOR MODAL FOR MOBILE SCANNING */}
       {previewToken && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#18181c] border border-stone-800 rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center animate-in zoom-in-95">
             <div>
-              <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest block">Customer Portal</span>
-              <h3 className="font-black text-2xl text-white mt-0.5">{previewTableName}</h3>
+              <span className="text-[10px] uppercase font-bold text-amber-500 tracking-widest block">Customer Portal</span>
+              <h3 className="font-bold text-2xl text-stone-50 font-serif mt-0.5">{previewTableName}</h3>
             </div>
 
             {/* QR Image */}
             {qrUrl ? (
-              <div className="bg-white p-4 rounded-2xl w-64 h-64 mx-auto shadow-2xl flex items-center justify-center">
+              <div className="bg-white p-4 rounded-2xl w-64 h-64 mx-auto shadow-xl flex items-center justify-center">
                 <img src={qrUrl} alt="QR Code" className="w-56 h-56 rounded-lg" />
               </div>
             ) : (
-              <div className="w-64 h-64 mx-auto bg-slate-950 rounded-2xl flex items-center justify-center">
-                <RefreshCw className="w-8 h-8 text-amber-400 animate-spin" />
+              <div className="w-64 h-64 mx-auto bg-[#111113] rounded-2xl flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
               </div>
             )}
 
             {/* Scannable Target URL */}
-            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-              <span className="text-[10px] text-slate-400 block font-semibold">URL Escaneable para Teléfono Móvil:</span>
-              <p className="text-xs font-mono font-bold text-amber-300 break-all select-all">
+            <div className="bg-[#111113] p-3 rounded-2xl border border-stone-800 space-y-1">
+              <span className="text-[10px] text-stone-400 block font-medium">URL Escaneable para Teléfono Móvil:</span>
+              <p className="text-xs font-mono font-bold text-amber-400 break-all select-all">
                 {targetScannableUrl}
               </p>
             </div>
@@ -354,7 +352,7 @@ export default function TablesPage() {
             <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 onClick={handleCopyLink}
-                className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 border border-slate-700 transition-all"
+                className="bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold py-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 border border-stone-700 transition-all"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-amber-400" />}
                 <span>{copied ? '¡COPIADO!' : 'COPIAR LINK'}</span>
@@ -364,7 +362,7 @@ export default function TablesPage() {
                 href={targetScannableUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-lg shadow-amber-500/20 transition-all"
+                className="bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-extrabold py-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all border border-amber-600"
               >
                 <span>ABRIR PORTAL</span>
                 <ExternalLink className="w-4 h-4" />
@@ -373,7 +371,7 @@ export default function TablesPage() {
 
             <button
               onClick={() => setPreviewToken(null)}
-              className="w-full text-slate-400 hover:text-white font-bold text-xs py-1"
+              className="w-full text-stone-400 hover:text-white font-bold text-xs py-1"
             >
               Cerrar Ventana
             </button>
@@ -383,35 +381,35 @@ export default function TablesPage() {
 
       {/* MANUAL ITEM ADDITION MODAL FOR WAITER */}
       {showManualModalTableId && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-sm flex items-center justify-center p-4">
           <form
             onSubmit={handleAddManualItem}
-            className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95"
+            className="bg-[#18181c] border border-stone-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-in zoom-in-95"
           >
             <div>
-              <span className="text-[10px] uppercase font-bold text-amber-400 tracking-widest block">Camarero — Carga Manual</span>
-              <h3 className="font-black text-xl text-white mt-0.5">Agregar Pedido Manual a {manualTableName}</h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <span className="text-[10px] uppercase font-bold text-amber-500 tracking-widest block">Camarero — Carga Manual</span>
+              <h3 className="font-bold text-xl text-stone-50 font-serif mt-0.5">Agregar Pedido Manual a {manualTableName}</h3>
+              <p className="text-xs text-stone-400 mt-1">
                 Ingresa una descripción personalizada y precio para subir directamente a la cuenta de esta mesa.
               </p>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Nombre o Descripción del Pedido</label>
+                <label className="block font-semibold text-stone-300 mb-1">Nombre o Descripción del Pedido</label>
                 <input
                   type="text"
                   placeholder="Ej: Ración de Tequeños con salsa, Extra queso..."
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
                   required
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#111113] border border-stone-800 rounded-xl px-3 py-2.5 text-sm text-stone-100 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Precio Unitario ($)</label>
+                  <label className="block font-semibold text-stone-300 mb-1">Precio Unitario ($)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -419,25 +417,25 @@ export default function TablesPage() {
                     value={manualPrice}
                     onChange={(e) => setManualPrice(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[#111113] border border-stone-800 rounded-xl px-3 py-2.5 text-sm text-stone-100 font-mono focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Cantidad</label>
+                  <label className="block font-semibold text-stone-300 mb-1">Cantidad</label>
                   <div className="flex items-center space-x-2">
                     <button
                       type="button"
                       onClick={() => setManualQty(Math.max(1, manualQty - 1))}
-                      className="w-9 h-9 bg-slate-800 text-white font-bold rounded-lg border border-slate-700 flex items-center justify-center text-base"
+                      className="w-9 h-9 bg-stone-800 text-stone-100 font-bold rounded-lg border border-stone-700 flex items-center justify-center text-base"
                     >
                       -
                     </button>
-                    <span className="font-extrabold text-sm text-white font-mono w-6 text-center">{manualQty}</span>
+                    <span className="font-bold text-sm text-stone-100 font-mono w-6 text-center">{manualQty}</span>
                     <button
                       type="button"
                       onClick={() => setManualQty(manualQty + 1)}
-                      className="w-9 h-9 bg-amber-500 text-slate-950 font-bold rounded-lg flex items-center justify-center text-base"
+                      className="w-9 h-9 bg-[#ca8a04] text-stone-950 font-bold rounded-lg flex items-center justify-center text-base"
                     >
                       +
                     </button>
@@ -450,13 +448,13 @@ export default function TablesPage() {
               <button
                 type="button"
                 onClick={() => setShowManualModalTableId(null)}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-all"
+                className="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3 rounded-xl text-xs transition-all"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3 rounded-xl text-xs shadow-lg shadow-amber-500/20 transition-all"
+                className="flex-1 bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-extrabold py-3 rounded-xl text-xs shadow-md transition-all border border-amber-600"
               >
                 SUBIR A LA CUENTA
               </button>

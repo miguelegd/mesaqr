@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { useMesaQRStore } from '@/lib/store/useMesaQRStore';
 import { getCustomerPortalDTO } from '@/lib/dto/customer';
 import {
-  QrCode,
   CreditCard,
   Banknote,
   Building2,
@@ -23,7 +22,7 @@ import { PaymentMethod } from '@/lib/types';
 export default function CustomerPortalPage() {
   const params = useParams();
   const token = (params.token as string) || 'token-demo-mesa-1';
-  const db = useMesaQRStore(); // Subscribes to realtime updates
+  const db = useMesaQRStore();
   const [, setTick] = useState(0);
 
   const [showCloseModal, setShowCloseModal] = useState<boolean>(false);
@@ -91,11 +90,11 @@ export default function CustomerPortalPage() {
 
   if (!dto) {
     return (
-      <div className="p-8 text-center space-y-3">
+      <div className="p-8 text-center space-y-3 bg-[#161619] min-h-screen">
         <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
-        <h1 className="text-lg font-bold text-white">Código QR No Válido</h1>
-        <p className="text-xs text-slate-400">
-          El token de la mesa no corresponde a ninguna sesión activa. Solicitale ayuda al camarero.
+        <h1 className="text-lg font-bold text-stone-100">Código QR No Válido</h1>
+        <p className="text-xs text-stone-400">
+          El token de la mesa no corresponde a ninguna sesión activa. Solicítale ayuda al camarero.
         </p>
       </div>
     );
@@ -132,41 +131,41 @@ export default function CustomerPortalPage() {
     const file = e.target.files[0];
     setUploadedProofName(file.name);
 
-    const dummyUrl = 'https://placehold.co/600x800/1e293b/ffffff.png?text=Comprobante+' + encodeURIComponent(file.name);
+    const dummyUrl = 'https://placehold.co/600x800/18181c/ffffff.png?text=Comprobante+' + encodeURIComponent(file.name);
     db.uploadPaymentProof(dto.payment.id, dummyUrl, file.name);
     setActionSuccessMsg('Comprobante enviado al cajero para revisión.');
   };
 
   return (
-    <div className="flex-1 flex flex-col p-4 space-y-5">
-      {/* Minimal Customer Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+    <div className="flex-1 flex flex-col p-4 space-y-5 bg-[#141416] text-stone-100 font-sans">
+      {/* Minimal Customer Header - Elegant Matte Black Theme */}
+      <div className="bg-[#1c1c20] border border-stone-800/90 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+        <div className="flex items-center justify-between border-b border-stone-800/80 pb-3">
           <div>
-            <h1 className="text-xl font-black text-white tracking-tight">{dto.restaurantName}</h1>
-            <p className="text-xs text-slate-400 font-semibold">{dto.tableNumber} • {dto.tableZone}</p>
+            <h1 className="text-xl font-bold text-stone-50 tracking-wide font-serif">{dto.restaurantName}</h1>
+            <p className="text-xs text-stone-400 font-medium">{dto.tableNumber} • {dto.tableZone}</p>
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] uppercase font-bold text-amber-400 block tracking-wider">Estado</span>
+            <span className="text-[10px] uppercase font-bold text-amber-500 block tracking-widest">Estado</span>
             {dto.sessionStatus === 'OPEN' && (
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              <span className="text-xs font-semibold text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-800/80">
                 Abierto 🟢
               </span>
             )}
             {dto.sessionStatus === 'PAYMENT_PENDING' && (
-              <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+              <span className="text-xs font-semibold text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-800/80">
                 Pago Pendiente 🟡
               </span>
             )}
             {dto.sessionStatus === 'PAYMENT_PROCESSING' && (
-              <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+              <span className="text-xs font-semibold text-sky-400 bg-sky-950/60 px-2.5 py-0.5 rounded border border-sky-800/80">
                 En Proceso 🔵
               </span>
             )}
             {dto.sessionStatus === 'PAID' || dto.sessionStatus === 'CLOSED' ? (
-              <span className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                Pagado 🎉
+              <span className="text-xs font-semibold text-purple-300 bg-purple-950/60 px-2.5 py-0.5 rounded border border-purple-800/80">
+                Pagado ✓
               </span>
             ) : null}
           </div>
@@ -175,61 +174,61 @@ export default function CustomerPortalPage() {
 
       {/* Action Toast Notification */}
       {actionSuccessMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-3.5 rounded-2xl text-xs font-semibold flex items-center space-x-2 animate-in fade-in">
+        <div className="bg-emerald-950/80 border border-emerald-800/90 text-emerald-300 p-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-400" />
           <span>{actionSuccessMsg}</span>
         </div>
       )}
 
       {/* Itemized Order Breakdown */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h2 className="font-bold text-sm text-white flex items-center space-x-2">
-            <FileText className="w-4 h-4 text-amber-400" />
+      <div className="bg-[#1c1c20] border border-stone-800/90 rounded-2xl p-5 shadow-lg space-y-4">
+        <div className="flex items-center justify-between border-b border-stone-800/80 pb-3">
+          <h2 className="font-bold text-sm text-stone-100 flex items-center space-x-2">
+            <FileText className="w-4 h-4 text-amber-500" />
             <span>Tu Cuenta</span>
           </h2>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-stone-400 font-mono">
             {dto.order ? `Comanda #${dto.order.id}` : 'Sin Pedidos'}
           </span>
         </div>
 
         {!dto.order || dto.order.items.length === 0 ? (
-          <div className="text-center py-6 text-slate-500 text-xs">
+          <div className="text-center py-6 text-stone-500 text-xs">
             <p>Aún no tienes productos registrados.</p>
             <p className="mt-0.5">El camarero añadirá tu pedido en breve.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
             {dto.order.items.map((item, idx) => (
-              <div key={idx} className="flex items-center justify-between py-1 border-b border-slate-800/40 text-xs">
+              <div key={idx} className="flex items-center justify-between py-1.5 border-b border-stone-800/50 text-xs">
                 <div className="flex items-center space-x-2.5">
-                  <span className="font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
+                  <span className="font-bold text-amber-400 bg-stone-800 px-2 py-0.5 rounded border border-stone-700">
                     {item.quantity}x
                   </span>
                   <div>
-                    <div className="font-semibold text-slate-100">{item.productName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">${item.unitPrice.toFixed(2)} c/u</div>
+                    <div className="font-semibold text-stone-100">{item.productName}</div>
+                    <div className="text-[10px] text-stone-400 font-mono">${item.unitPrice.toFixed(2)} c/u</div>
                   </div>
                 </div>
-                <div className="font-extrabold font-mono text-slate-200">${item.subtotal.toFixed(2)}</div>
+                <div className="font-bold font-mono text-stone-200">${item.subtotal.toFixed(2)}</div>
               </div>
             ))}
           </div>
         )}
 
         {dto.order && (
-          <div className="pt-3 border-t border-slate-800 space-y-1.5 text-xs">
-            <div className="flex justify-between text-slate-400">
+          <div className="pt-3 border-t border-stone-800/90 space-y-1.5 text-xs">
+            <div className="flex justify-between text-stone-400">
               <span>Subtotal</span>
-              <span className="font-mono text-slate-200">${dto.order.subtotal.toFixed(2)}</span>
+              <span className="font-mono text-stone-200">${dto.order.subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-slate-400">
-              <span>IVA (16%)</span>
-              <span className="font-mono text-slate-200">${dto.order.tax.toFixed(2)}</span>
+            <div className="flex justify-between text-stone-400">
+              <span>IVA (0%)</span>
+              <span className="font-mono text-stone-200">${dto.order.tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm font-extrabold text-white pt-2 border-t border-slate-800">
+            <div className="flex justify-between text-sm font-bold text-stone-50 pt-2 border-t border-stone-800">
               <span>TOTAL A PAGAR</span>
-              <span className="font-mono text-amber-400 text-lg">${dto.order.total.toFixed(2)}</span>
+              <span className="font-mono text-amber-400 text-lg font-black">${dto.order.total.toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -241,7 +240,7 @@ export default function CustomerPortalPage() {
           {dto.sessionStatus === 'OPEN' && (
             <button
               onClick={() => setShowCloseModal(true)}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold py-3.5 px-5 rounded-2xl shadow-xl shadow-amber-500/20 active:scale-98 transition-all flex items-center justify-center space-x-2 text-sm"
+              className="w-full bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-bold py-3.5 px-5 rounded-xl shadow-md active:scale-98 transition-all flex items-center justify-center space-x-2 text-sm border border-amber-600"
             >
               <span>CERRAR CUENTA & PAGAR</span>
               <ArrowRight className="w-4 h-4" />
@@ -249,158 +248,135 @@ export default function CustomerPortalPage() {
           )}
 
           {(dto.sessionStatus === 'PAYMENT_PENDING' || dto.sessionStatus === 'PAYMENT_PROCESSING') && (
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-              <h3 className="font-bold text-sm text-white flex items-center space-x-2">
-                <CreditCard className="w-4 h-4 text-amber-400" />
-                <span>¿Cómo deseas pagar?</span>
+            <div className="bg-[#1c1c20] border border-stone-800/90 rounded-2xl p-5 shadow-lg space-y-4">
+              <h3 className="font-bold text-sm text-stone-100 flex items-center space-x-2">
+                <CreditCard className="w-4 h-4 text-amber-500" />
+                <span>Seleccionar Método de Pago</span>
               </h3>
 
+              {/* Payment Methods Grid */}
               <div className="grid grid-cols-2 gap-2.5">
                 <button
-                  onClick={() => handleInitiatePayment('BANK_TRANSFER')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    selectedMethod === 'BANK_TRANSFER' || dto.payment?.method === 'BANK_TRANSFER' || dto.payment?.method === 'PAGO_MOVIL'
-                      ? 'bg-amber-500/10 border-amber-500 text-white ring-1 ring-amber-500/40'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  onClick={() => handleInitiatePayment('CARD')}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedMethod === 'CARD'
+                      ? 'bg-amber-950/50 border-amber-500 text-stone-100'
+                      : 'bg-stone-900/60 border-stone-800 text-stone-300 hover:border-stone-700'
                   }`}
                 >
-                  <Building2 className="w-5 h-5 text-amber-400 mb-1" />
-                  <div>
-                    <div className="font-bold text-xs">Pago Móvil / Banco</div>
-                    <div className="text-[10px] text-slate-400">Banesco</div>
-                  </div>
+                  <CreditCard className="w-5 h-5 text-amber-500 mb-1" />
+                  <div className="font-bold text-xs">Punto / Tarjeta</div>
+                  <div className="text-[10px] text-stone-400">Pagar en mesa</div>
                 </button>
 
                 <button
                   onClick={() => handleInitiatePayment('CASH')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    selectedMethod === 'CASH' || dto.payment?.method === 'CASH'
-                      ? 'bg-amber-500/10 border-amber-500 text-white ring-1 ring-amber-500/40'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedMethod === 'CASH'
+                      ? 'bg-amber-950/50 border-amber-500 text-stone-100'
+                      : 'bg-stone-900/60 border-stone-800 text-stone-300 hover:border-stone-700'
                   }`}
                 >
-                  <Banknote className="w-5 h-5 text-emerald-400 mb-1" />
-                  <div>
-                    <div className="font-bold text-xs">Efectivo</div>
-                    <div className="text-[10px] text-slate-400">Pagar en caja</div>
-                  </div>
+                  <Banknote className="w-5 h-5 text-emerald-500 mb-1" />
+                  <div className="font-bold text-xs">Efectivo</div>
+                  <div className="text-[10px] text-stone-400">Pagar al camarero</div>
                 </button>
 
                 <button
-                  onClick={() => handleInitiatePayment('CARD')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    selectedMethod === 'CARD' || dto.payment?.method === 'CARD'
-                      ? 'bg-amber-500/10 border-amber-500 text-white ring-1 ring-amber-500/40'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  onClick={() => handleInitiatePayment('BANK_TRANSFER')}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedMethod === 'BANK_TRANSFER'
+                      ? 'bg-amber-950/50 border-amber-500 text-stone-100'
+                      : 'bg-stone-900/60 border-stone-800 text-stone-300 hover:border-stone-700'
                   }`}
                 >
-                  <CreditCard className="w-5 h-5 text-blue-400 mb-1" />
-                  <div>
-                    <div className="font-bold text-xs">Tarjeta</div>
-                    <div className="text-[10px] text-slate-400">Punto de venta</div>
-                  </div>
+                  <Building2 className="w-5 h-5 text-blue-400 mb-1" />
+                  <div className="font-bold text-xs">Pago Móvil / Transf.</div>
+                  <div className="text-[10px] text-stone-400">Adjuntar comprobante</div>
                 </button>
 
                 <button
-                  onClick={() => handleInitiatePayment('BINANCE')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    selectedMethod === 'BINANCE' || dto.payment?.method === 'BINANCE'
-                      ? 'bg-amber-500/10 border-amber-500 text-white ring-1 ring-amber-500/40'
-                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  onClick={() => handleInitiatePayment('BINANCE_PAY')}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedMethod === 'BINANCE_PAY'
+                      ? 'bg-amber-950/50 border-amber-500 text-stone-100'
+                      : 'bg-stone-900/60 border-stone-800 text-stone-300 hover:border-stone-700'
                   }`}
                 >
-                  <Coins className="w-5 h-5 text-yellow-400 mb-1" />
-                  <div>
-                    <div className="font-bold text-xs">Binance Pay</div>
-                    <div className="text-[10px] text-slate-400">USDT</div>
-                  </div>
+                  <Coins className="w-5 h-5 text-yellow-500 mb-1" />
+                  <div className="font-bold text-xs">Binance Pay</div>
+                  <div className="text-[10px] text-stone-400">USDT / Cripto</div>
                 </button>
               </div>
 
-              {/* FLOW: CASH / CARD INSTRUCTIONS */}
-              {(dto.payment?.method === 'CASH' || dto.payment?.method === 'CARD') && (
-                <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1 animate-in fade-in">
-                  <div className="font-bold text-amber-400 flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Pago en Caja Requerido</span>
-                  </div>
-                  <p>
-                    Dirígete a caja e indica que vas a cancelar el consumo de la{' '}
-                    <strong className="text-white font-bold">{dto.tableNumber}</strong> (${dto.order.total.toFixed(2)}).
-                  </p>
-                </div>
-              )}
+              {/* Dynamic Details for selected payment method */}
+              {dto.payment && (
+                <div className="bg-stone-900/80 p-4 rounded-xl border border-stone-800 space-y-3 text-xs">
+                  {dto.payment.method === 'BANK_TRANSFER' && dto.bankDetails && (
+                    <div className="space-y-2">
+                      <h4 className="font-bold text-amber-400">Datos para Pago Móvil / Transferencia:</h4>
+                      <div className="space-y-1 text-[11px] text-stone-300 font-mono bg-stone-950 p-2.5 rounded border border-stone-800">
+                        <div>Banco: <strong>{dto.bankDetails.bankName}</strong></div>
+                        <div>Titular: <strong>{dto.bankDetails.accountHolder}</strong></div>
+                        <div>RIF: <strong>{dto.bankDetails.taxId}</strong></div>
+                        <div>Teléfono: <strong>{dto.bankDetails.phone}</strong></div>
+                      </div>
 
-              {/* FLOW: BANK TRANSFER / PAGO MOVIL DETAILED FORM */}
-              {(dto.payment?.method === 'BANK_TRANSFER' || dto.payment?.method === 'PAGO_MOVIL') && (
-                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3 animate-in fade-in">
-                  <h4 className="font-bold text-xs text-amber-400">Datos Bancarios para Transferencia / Pago Móvil</h4>
+                      <div className="pt-2 space-y-2">
+                        <label className="block text-stone-300 font-semibold">Número de Referencia:</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: 948271"
+                          value={referenceNumber}
+                          onChange={(e) => setReferenceNumber(e.target.value)}
+                          className="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-stone-100 focus:outline-none focus:border-amber-500 font-mono"
+                        />
 
-                  <div className="text-[11px] bg-slate-900 p-2.5 rounded-xl space-y-1 font-mono text-slate-300">
-                    <div><strong>Banco:</strong> {dto.bankDetails?.bankName}</div>
-                    <div><strong>Titular:</strong> {dto.bankDetails?.accountHolder}</div>
-                    <div><strong>RIF:</strong> {dto.bankDetails?.taxId}</div>
-                    <div><strong>Teléfono Pago Móvil:</strong> {dto.bankDetails?.phone}</div>
-                    <div><strong>Cuenta:</strong> {dto.bankDetails?.accountNumber}</div>
-                  </div>
+                        <label className="block text-stone-300 font-semibold pt-1">Subir Comprobante (Captura):</label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleUploadSimulatedProof}
+                            className="hidden"
+                            id="proof-upload"
+                          />
+                          <label
+                            htmlFor="proof-upload"
+                            className="w-full bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 py-2.5 px-3 rounded-lg flex items-center justify-center space-x-2 cursor-pointer transition-all font-semibold"
+                          >
+                            <Upload className="w-4 h-4 text-amber-500" />
+                            <span>{uploadedProofName || dto.payment.proofFileName || 'Seleccionar Imagen'}</span>
+                          </label>
+                        </div>
 
-                  <div className="space-y-2.5">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Número de Referencia
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Ej: 098124"
-                        value={referenceNumber}
-                        onChange={(e) => setReferenceNumber(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                        Subir Imagen de Comprobante
-                      </label>
-                      <label className="border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer bg-slate-900/50 transition-all">
-                        <Upload className="w-5 h-5 text-amber-400 mb-1" />
-                        <span className="text-[11px] text-slate-300 text-center font-medium">
-                          {uploadedProofName || dto.payment.proofFileName || 'Seleccionar comprobante'}
-                        </span>
-                        <input type="file" accept="image/*" onChange={handleUploadSimulatedProof} className="hidden" />
-                      </label>
-                    </div>
-
-                    {dto.payment.proofStatus && (
-                      <div className="p-2.5 rounded-xl border bg-slate-900 text-xs flex items-center justify-between">
-                        <span className="text-slate-400 text-[11px]">Estado:</span>
-                        {dto.payment.proofStatus === 'UNDER_REVIEW' && (
-                          <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 text-[10px]">
-                            En Revisión por Caja ⏳
-                          </span>
-                        )}
-                        {dto.payment.proofStatus === 'APPROVED' && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 text-[10px]">
-                            Pago Aprobado ✅
-                          </span>
+                        {dto.payment.proofStatus === 'PENDING_REVIEW' && (
+                          <div className="bg-amber-950/60 border border-amber-800 text-amber-300 p-2.5 rounded text-[11px] flex items-center space-x-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>Comprobante en revisión por la caja del restaurante.</span>
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )}
 
-              {/* FLOW: BINANCE PAY MOCK */}
-              {dto.payment?.method === 'BINANCE' && (
-                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2 text-center animate-in fade-in">
-                  <Coins className="w-8 h-8 text-yellow-400 mx-auto" />
-                  <h4 className="font-bold text-xs text-white">Binance Pay</h4>
-                  <p className="text-[11px] text-slate-400">
-                    Merchant PayID: <strong className="text-white font-mono">{dto.binanceDetails?.payId}</strong>
-                  </p>
-                  <div className="bg-white p-2 w-32 h-32 mx-auto rounded-xl flex items-center justify-center">
-                    <QrCode className="w-28 h-28 text-slate-900" />
-                  </div>
+                  {dto.payment.method === 'BINANCE_PAY' && dto.binanceDetails && (
+                    <div className="space-y-2 text-center">
+                      <h4 className="font-bold text-amber-400">Binance Pay ID:</h4>
+                      <div className="text-base font-extrabold text-white font-mono bg-stone-950 p-3 rounded border border-stone-800">
+                        {dto.binanceDetails.payId}
+                      </div>
+                      <p className="text-[11px] text-stone-400">Escanea el código Pay desde tu App de Binance</p>
+                    </div>
+                  )}
+
+                  {(dto.payment.method === 'CASH' || dto.payment.method === 'CARD') && (
+                    <div className="text-center py-2 space-y-1">
+                      <ShieldCheck className="w-6 h-6 text-emerald-500 mx-auto" />
+                      <p className="font-bold text-stone-200">El camarero asistirá a tu mesa en un momento.</p>
+                      <p className="text-[11px] text-stone-400">Monto total a cobrar: ${dto.payment.amount.toFixed(2)}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -408,26 +384,26 @@ export default function CustomerPortalPage() {
         </>
       )}
 
-      {/* CONFIRM CLOSE MODAL */}
-      {showCloseModal && dto.order && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-xs w-full space-y-3 shadow-2xl animate-in zoom-in-95">
-            <h3 className="font-extrabold text-base text-white">¿Confirmar Cierre de Cuenta?</h3>
-            <p className="text-xs text-slate-300">
-              Solicitarás el cierre de cuenta para <strong className="text-white font-bold">{dto.tableNumber}</strong>.
+      {/* MODAL PARA CONFIRMAR CIERRE DE CUENTA */}
+      {showCloseModal && (
+        <div className="fixed inset-0 z-50 bg-stone-950/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1c1c20] border border-stone-800 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in zoom-in-95">
+            <h3 className="font-bold text-lg text-stone-50">¿Deseas cerrar tu cuenta?</h3>
+            <p className="text-xs text-stone-400">
+              Al cerrar la cuenta no podrás agregar más productos y procederás a elegir tu método de pago.
             </p>
-
-            <div className="bg-slate-950 p-2.5 rounded-xl text-xs flex justify-between">
-              <span className="text-slate-400">Monto Total:</span>
-              <span className="font-extrabold text-amber-400 font-mono">${dto.order.total.toFixed(2)}</span>
-            </div>
-
             <div className="flex space-x-2 pt-2">
-              <button onClick={() => setShowCloseModal(false)} className="flex-1 bg-slate-800 text-slate-300 font-bold py-2.5 rounded-xl text-xs">
-                Volver
+              <button
+                onClick={() => setShowCloseModal(false)}
+                className="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-2.5 rounded-xl text-xs"
+              >
+                Cancelar
               </button>
-              <button onClick={handleConfirmCloseAccount} className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs">
-                CONFIRMAR
+              <button
+                onClick={handleConfirmCloseAccount}
+                className="flex-1 bg-[#ca8a04] hover:bg-[#eab308] text-stone-950 font-extrabold py-2.5 rounded-xl text-xs shadow-md"
+              >
+                Sí, Cerrar Cuenta
               </button>
             </div>
           </div>

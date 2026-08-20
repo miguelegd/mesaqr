@@ -30,7 +30,8 @@ export type PaymentMethod =
   | 'CARD' 
   | 'BANK_TRANSFER' 
   | 'PAGO_MOVIL' 
-  | 'BINANCE';
+  | 'BINANCE'
+  | 'BINANCE_PAY';
 
 export type PaymentStatus = 
   | 'CREATED' 
