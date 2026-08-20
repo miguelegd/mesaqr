@@ -41,6 +41,51 @@ export default function CustomerPortalPage() {
     return () => window.removeEventListener('storage', handleStorage);
   }, [db]);
 
+  // Cross-device polling effect (syncs mobile phone with PC via /api/v1/sync every 2 seconds)
+  React.useEffect(() => {
+    const pollServer = async () => {
+      try {
+        const res = await fetch(`/api/v1/sync?token=${encodeURIComponent(token)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && data.order) {
+          const serverOrder = data.order;
+          const resolvedTableId = data.tableId || (token.includes('mesa-2') || token.includes('tbl-2') ? 'tbl-2' : 'tbl-1');
+          const session = db.tableSessions.find((s) => s.tableId === resolvedTableId && (s.status === 'OPEN' || s.status === 'PAYMENT_PENDING' || s.status === 'PAYMENT_PROCESSING' || s.status === 'PAID'));
+          
+          if (session) {
+            const localOrder = db.orders.find((o) => o.tableSessionId === session.id);
+            if (localOrder && (localOrder.total !== serverOrder.total || localOrder.items.length !== serverOrder.items.length)) {
+              localOrder.items = serverOrder.items.map((i: any) => ({
+                id: i.id || `item-${Date.now()}`,
+                orderId: localOrder.id,
+                productId: `prod-${i.id}`,
+                productNameSnapshot: i.productName,
+                skuSnapshot: 'SYNC',
+                quantity: i.quantity,
+                unitPriceSnapshot: i.unitPrice,
+                taxSnapshot: 0,
+                discount: 0,
+                subtotal: i.subtotal,
+              }));
+              localOrder.subtotal = serverOrder.subtotal;
+              localOrder.tax = serverOrder.tax || 0;
+              localOrder.total = serverOrder.total;
+              db.saveToStorage();
+              setTick((t) => t + 1);
+            }
+          }
+        }
+      } catch (err) {
+        // silent catch
+      }
+    };
+
+    pollServer();
+    const intervalId = setInterval(pollServer, 2000);
+    return () => clearInterval(intervalId);
+  }, [token, db]);
+
   // Consume DTO
   const dto = getCustomerPortalDTO(token);
 

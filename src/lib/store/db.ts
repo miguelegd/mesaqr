@@ -152,6 +152,41 @@ class MesaQRDatabase {
 
   private notify(eventType: string, payload: unknown) {
     this.saveToStorage();
+
+    // Push update to server endpoint for cross-device synchronization over Internet / 4G
+    if (typeof window !== 'undefined' && eventType === 'ORDER_UPDATED' && payload) {
+      try {
+        const order = payload as Order;
+        const tableSession = this.tableSessions.find((s) => s.id === order.tableSessionId);
+        fetch('/api/v1/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'UPDATE_ORDER',
+            tableId: tableSession?.tableId || 'tbl-1',
+            order: {
+              orderId: order.id,
+              tableId: tableSession?.tableId || 'tbl-1',
+              tableNumber: order.tableNumber,
+              total: order.total,
+              subtotal: order.subtotal,
+              tax: order.tax,
+              status: order.status,
+              items: order.items.map((i) => ({
+                id: i.id,
+                productName: i.productNameSnapshot,
+                quantity: i.quantity,
+                unitPrice: i.unitPriceSnapshot,
+                subtotal: i.subtotal,
+              })),
+            },
+          }),
+        }).catch(() => {});
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (broadcastBus) {
       try {
         broadcastBus.postMessage({ eventType, payload, ts: Date.now() });
